@@ -1,0 +1,13 @@
+local SDL = {}
+
+function SDL.Run()
+    vim.keymap.set("n", "<F7>", function()
+	  local filePath = vim.fn.expand("%:p")
+	  local fileDir = vim.fn.expand("%:p:h")
+	  local output = vim.fn.expand("%:p:r") .. ".exe"
+	  vim.cmd('term g++ "' .. filePath .. '" -IC:/Users/uyand/SDL3_32Bit/include -LC:/Users/uyand/SDL3_32Bit/lib -w -Wl,-subsystem,windows -lSDL3 -o "' .. output .. '" && "' .. output .. '"')
+	  end, { noremap = true, silent = true })
+
+end
+
+return SDL
