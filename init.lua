@@ -169,6 +169,61 @@ require("neo-tree").setup({
   },
 })
 
+local function build_and_run()
+  -- First, compile the program
+  vim.fn.jobstart({"g++", "Main.cpp", "-o", "Main.exe"}, {
+    stdout_buffered = true,
+    stderr_buffered = true,
+
+    on_stdout = function(_, data, _)
+      if data then
+        for _, line in ipairs(data) do
+          if line ~= "" then
+            print("g++: " .. line)
+          end
+        end
+      end
+    end,
+
+    on_stderr = function(_, data, _)
+      if data then
+        for _, line in ipairs(data) do
+          if line ~= "" then
+            print("g++ error: " .. line)
+          end
+        end
+      end
+    end,
+
+    on_exit = function(_, exit_code, _)
+      if exit_code == 0 then
+        print("✅ Compilation successful. Running Main.exe...")
+
+        -- Open new terminal buffer
+        vim.cmd("enew")
+        vim.bo.buftype = "nofile"
+        vim.bo.bufhidden = "wipe"
+
+        -- Run the executable
+        local job_id = vim.fn.termopen({"./Main.exe"}, {
+          on_exit = function(_, code, _)
+            vim.cmd("BufferLineCycleNext")
+          end
+        })
+
+        -- Save job ID if you want to track it later
+        vim.b.my_exe_job_id = job_id
+
+      else
+        print("❌ Compilation failed.")
+      end
+    end
+  })
+end
+
+-- Optional keybind
+vim.keymap.set("n", "<F7>", build_and_run, { desc = "Build and Run C++" })
+
 vim.g.mapleader = ' '
 
 vim.keymap.set('n', "<leader>e", ":Neotree position=left toggle source=filesystem action=show reveal<CR>", {noremap=true, silent=true})
